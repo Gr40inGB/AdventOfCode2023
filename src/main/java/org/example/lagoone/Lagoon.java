@@ -3,10 +3,7 @@ package org.example.lagoone;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class Lagoon {
     static boolean[][] array;
@@ -36,7 +33,7 @@ public class Lagoon {
                 else if (start.y < 0 && verticalSizeMinus > start.y) verticalSizeMinus = start.y;
             }
         }
-        for (var c : allCoordinates) System.out.println(c);
+//        for (var c : allCoordinates) System.out.println(c);
 
         System.out.println(verticalSizePlus + "\t" + verticalSizeMinus);
         System.out.println(horizontalSizePlus + "\t" + horizontalSizeMinus);
@@ -50,13 +47,13 @@ public class Lagoon {
         for (var coordinate : allCoordinates) {
             array[verticalSizePlus - coordinate.y][-(horizontalSizeMinus - coordinate.x)] = true;
         }
-        printArray(array);
+//        printArray(array);
 
         int innerY = -1;
         int innerX = -1;
 
-        for (int y = 2; y < HEIGHT && innerX < 0; y++) {
-            for (int x = 2; x < WIGHT && innerX < 0; x++) {
+        for (int y = 0; y < HEIGHT && innerX < 0; y++) {
+            for (int x = 0; x < WIGHT && innerX < 0; x++) {
                 if (!array[y][x] && iAmIn(y, x)) {
                     innerX = x;
                     innerY = y;
@@ -74,22 +71,51 @@ public class Lagoon {
 //
 //        }
 
-//        fillArray(innerY,innerX);
+        fillArray(innerY, innerX);
 //        printArray(array);
+
+        int finalRes = 0;
+        for (int y = 0; y < HEIGHT; y++) {
+            for (int x = 0; x < WIGHT; x++) {
+                if (array[y][x]) finalRes++;
+            }
+
+        }
+
+        System.out.println("RESULT IS" + finalRes);
 
 
     }
 
     public static void fillArray(int y, int x) {
-        if (y < 0 && y >= HEIGHT && x < 0 && x >= WIGHT) return;
-        if (array[y][x]) return;
-        else {
-            array[y][x] = true;
-            fillArray(y + 1, x);
-            fillArray(y - 1, x);
-            fillArray(y, x + 1);
-            fillArray(y, x - 1);
+//        if (y < 0 || y >= HEIGHT || x < 0 || x >= WIGHT) return;
+        Deque<Cell> queue = new ArrayDeque<>();
+        boolean[][] inQueue = new boolean[HEIGHT][WIGHT];
+        queue.add(new Cell(y, x));
+        while (!queue.isEmpty()) {
+            Cell currentCell = queue.pop();
+            array[currentCell.y][currentCell.x] = true;
+            for (Cell c : getFreeNeighbors(currentCell)) {
+                if (!inQueue[c.y][c.x]) {
+                    queue.add(c);
+                    inQueue[c.y][c.x] = true;
+                }
+            }
         }
+
+
+    }
+
+    public static List<Cell> getFreeNeighbors(Cell innerCell) {
+        List<Cell> result = new ArrayList<>();
+        for (Cell currentCell : innerCell.getCellNeighbors()) {
+            if (inField(currentCell) && !array[currentCell.y][currentCell.x]) result.add(currentCell);
+        }
+        return result;
+    }
+
+    public static boolean inField(Cell cell) {
+        return cell.y >= 0 && cell.y < HEIGHT && cell.x >= 0 && cell.x < WIGHT;
     }
 
     public class FillInTread extends Thread {
@@ -113,7 +139,7 @@ public class Lagoon {
             if (array[y][x]) return;
             else {
                 array[y][x] = true;
-                new FillInTread(y , x )
+//                new FillInTread(y, x )
                 fillArray(y + 1, x);
                 fillArray(y - 1, x);
                 fillArray(y, x + 1);
